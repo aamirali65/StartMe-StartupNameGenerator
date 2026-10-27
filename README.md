@@ -10,22 +10,29 @@ The form in `src/components/home/index.jsx` collects an industry and keywords, t
 
 React 18 · Vite · Tailwind CSS · Google Generative AI SDK (an OpenAI dependency is also installed, unused by the current flow)
 
-## Running
+## Setup
+
+The API key is read from the environment, so nothing secret lives in the source:
 
 ```bash
+cp .env.example .env
+# then put your key in .env:
+# VITE_GEMINI_API_KEY=your-key-here
+
 npm install
 npm run dev
 ```
 
-## ⚠️ Before you run or redeploy this
+`.env` is gitignored. Grab a key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
-**The Gemini API key is hardcoded in `src/generate.js`.** It is committed to this public repository, which means it is compromised — anyone who reads the file can use it against your quota.
+If the key is missing, the app still loads and tells you when you try to generate.
 
-1. Revoke that key in Google AI Studio / Google Cloud Console and create a new one.
-2. Move the new key into an environment variable (`import.meta.env.VITE_GEMINI_API_KEY` with a `.env` file that stays out of git) and read it in `src/generate.js`.
+## ⚠️ Revoke the old key
 
-Also note that a browser-side API key is visible to anyone using the app, so a key that must stay secret belongs behind a small server route instead.
+An earlier version of `src/generate.js` had a Gemini API key hardcoded in it. That key is **still in the git history**, so simply removing it from the current file is not enough — anyone can read it from an old commit.
 
-## Notes
+Revoke it in Google AI Studio / Google Cloud Console, then issue a new one for `.env`.
 
-Practice project for calling an LLM from a React front end. Once the key is rotated out of the source, this is a reasonable small example of prompt construction and streaming-free responses.
+## Note on browser-side keys
+
+Vite inlines `VITE_*` variables into the built bundle, so a deployed copy of this site exposes the key to anyone who looks. That is acceptable for a personal key with a quota you monitor; if the key must stay secret, move the Gemini call behind a small server route and keep it there.

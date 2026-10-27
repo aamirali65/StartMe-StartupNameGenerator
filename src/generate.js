@@ -1,13 +1,26 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Initialize Gemini API
+// The API key comes from the environment, never from source.
+// Copy .env.example to .env (it is gitignored) and set VITE_GEMINI_API_KEY.
+//
+// Note: Vite inlines VITE_* variables into the built bundle, so anyone using the
+// deployed site can read the key. If the key must stay secret, proxy the call
+// through a small server route instead of calling Gemini from the browser.
+const getModel = () => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-const genAI = new GoogleGenerativeAI("AIzaSyC_gCQvpIFO_5ydHkWRHwIKTfe3Oke4Joo"); // Replace with your actual API key
+  if (!apiKey) {
+    throw new Error(
+      "VITE_GEMINI_API_KEY is not set. Copy .env.example to .env and add your Gemini API key."
+    );
+  }
+
+  return new GoogleGenerativeAI(apiKey).getGenerativeModel({ model: "gemini-pro" });
+};
 
 export const testGemini = async () => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent("Test message");
+    const result = await getModel().generateContent("Test message");
     console.log("Test response:", result.response.text());
     return true;
   } catch (error) {
@@ -28,12 +41,11 @@ Guidelines:
 Only provide the names, one per line.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent(prompt);
+    const result = await getModel().generateContent(prompt);
     const response = result.response.text();
-    return response.split('\n').filter(name => name.trim().length > 0);
+    return response.split("\n").filter((name) => name.trim().length > 0);
   } catch (error) {
-    console.error('Gemini Error:', error);
-    throw new Error('Failed to generate names');
+    console.error("Gemini Error:", error);
+    throw new Error("Failed to generate names");
   }
-}; 
+};
